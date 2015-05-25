@@ -24,6 +24,18 @@ for ii = 1:N
 end
 preallocate = toc;
 
+
+%Switch loop order so that we make best use of CPU cache
+tic
+% Generate a N-by-N matrix where A(i,j) = i + j;
+Aswitchloop=zeros(N,N);
+for jj = 1:N
+     for ii = 1:N
+         Aswitchloop(ii,jj) = ii + jj;
+     end
+end
+switchloop = toc;
+
 %Method 1: MESHGRID.
 tic
 [X, Y] = meshgrid(1:N, 1:N);
@@ -52,6 +64,7 @@ bsxfun_time=toc;
 
 fprintf('Original loop time is %f\n',original);
 fprintf('Preallocate and loop is %f\n',preallocate);
+fprintf('Switched loop order is %f\n',switchloop);
 fprintf('Meshgrid time is %f\n',mesh_time);
 fprintf('Matmul time is %f\n',matmul_time);
 fprintf('Repmat time is %f\n',repmat_time);
@@ -59,7 +72,7 @@ fprintf('Cumsum time is %f\n',cumsum_time);
 fprintf('bsxfun time is %f\n',bsxfun_time);
 
 %test for equality
-test = all(all(repmat(Aloop,1,6) == [Amesh,Aprealloc,Amatmul,Arepmat,Acumsum,Absxfun]));
+test = all(all(repmat(Aloop,1,7) == [Amesh,Aprealloc,Aswitchloop,Amatmul,Arepmat,Acumsum,Absxfun]));
 
 if test==1
     fprintf('\nAll results are equal\n');
